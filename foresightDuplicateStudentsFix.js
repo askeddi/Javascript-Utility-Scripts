@@ -1,3 +1,20 @@
+/*
+This script was developed to fix an error that occured when a sync was ran on a school who had switched MIS and so the wonde ids 
+were reset thus creating duplicate students_schools (sync has been modified to prevent this from reoccurring).
+
+This script essentially does the following:
+	1. Connects to the MongoDB database.
+	2. Retrieves current students who have a UPN and previous students who do not have a UPN.
+	3. For each current student, it checks for a matching previous student based on UPN.
+	4. If a match is found:
+		- Updates the current student's record to reference the previous student's ID in a `past_id` field.
+		- Reassigns associated collections (alerts, cases, class enrollments, group enrollments, and student school results) from the previous student to the current student.
+		- Combines attendance records from the previous student to the current student, ensuring no duplicates in attendance entries.
+		- Deletes the previous student's record to prevent duplicates.
+	5. Logs any unmatched current students.
+	6. Handles errors and ensures proper disconnection from the database after operations.
+*/
+
 const axios = require("axios");
 const { default: mongoose } = require("mongoose");
 const { ObjectId } = require("bson");
